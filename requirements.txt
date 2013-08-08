@@ -1,3 +1,4 @@
+wikipedia-infobox-tool
 dumptruck==0.1.5
 requests==1.2.3
 scraperwiki==0.3.4
