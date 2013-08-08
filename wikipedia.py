@@ -6,30 +6,21 @@ query = 'format=json&action=query&titles=ScraperWiki&prop=revisions&rvprop=conte
 request = requests.get('http://en.wikipedia.org/w/api.php?' + query)
 pageid = request.json()['query']['pages'].keys()[0]
 content = request.json()['query']['pages'][pageid]['revisions'][0]['*']
-#infobox = content[content.find('{{Infobox')::]
-#infobox = infobox[:infobox.find('/n}}'):]
 
-data = {
-    'fieldName': [],
-    'fieldValue': []
-}
-keys = []
-values = []
+scraperwiki.sql.execute("create table if not exists swdata (field, value)")
 
 content = content.split('\n|')
 
-for item in content[1:-1:]:
+content[-1] = content[-1][:content[-1].find('\n'):]
+
+for item in content[1::]:
     pair = item[1::].split('=')
     try:
         field = pair[0].strip()
         value = pair[1].strip()
         print field, value
-        scraperwiki.sql.execute("insert into table swdata values(
+        scraperwiki.sql.execute("insert into swdata values('%s', '%s')" % (field, value))
     except IndexError:
         print 'IndexError!'
 
-data['fieldName'] = keys
-data['fieldValue'] = values
-print type(data['fieldName'])
-print type(data['fieldValue'])
-scraperwiki.sql.save(['fieldName'], data)
+scraperwiki.sql.commit()
