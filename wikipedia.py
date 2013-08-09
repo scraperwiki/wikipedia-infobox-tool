@@ -18,7 +18,9 @@ def scrape_members(category):
     json_content = request.json()
     data_list = []
     for member in json_content['query']['categorymembers']:
-        data_list.append(scrape_infobox(member['pageid']))
+        data = scrape_infobox(member['pageid'])
+        if data != None:
+            data_list.append(data)
     scraperwiki.sql.save(['id'], data_list)
 
 def scrape_infobox(pageid):
@@ -29,7 +31,12 @@ def scrape_infobox(pageid):
     content = json_content['query']['pages'][pageid]['revisions'][0]['*']
     article_name = json_content['query']['pages'][pageid]['title']    
 
-    content = content[:re.search('\n.*\}\}', content).start():]
+    if 'infobox' not in content.lower():
+        print 'Infobox not found for ' + article_name
+        return None
+
+    content = content[content.find('{{Infobox')::]
+    content = content[:re.search('\n[^\n{]*\}\}[^\n{]*\n', content).start():]
     content = content.split('\n|')
 
     data = {}
@@ -52,7 +59,7 @@ def scrape_infobox(pageid):
     return data
 
 def main():
-    scrape_members('Category:Recipients_of_the_Order_of_the_Seraphim')
+    scrape_members('Category:Airports_in_the_United_Kingdom')
 
 if __name__ == '__main__':
     main()
