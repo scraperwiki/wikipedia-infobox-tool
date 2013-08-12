@@ -1,4 +1,4 @@
-wikipedia-infobox-tool
+Wikipedia Infobox Tool
 ======================
 
-A tool used for 
+A tool for getting structured data from the infoboxes of Wikipedia articles.  
