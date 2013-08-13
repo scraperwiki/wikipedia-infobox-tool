@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
 import sys
-import json
 import re
 import requests
 import scraperwiki
 
 api_url = 'http://en.wikipedia.org/w/api.php?action=query&format=json' 
+
+def clear_db():
+    scraperwiki.sql.execute("drop table if exists swdata;")
+    scraperwiki.sql.commit()
 
 def clean_data(data):
     data = re.sub('(\[\[)|(\]\])', '', data)
@@ -78,9 +81,7 @@ def scrape_infobox(pageid):
 
     return data
 
-def main():
-    scraperwiki.sql.execute("drop table if exists swdata;")
-    scraperwiki.sql.commit()  
+def main():  
     scrape_members(sys.argv[1])
 
 if __name__ == '__main__':
