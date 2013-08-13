@@ -3,26 +3,9 @@ body {
   margin: 0 auto;
 }
 
-.help-inline {
-  opacity: 0.6;
-}
-
-.form-horizontal .controls {
-  margin-left: 320px;
-}
-
-.form-horizontal .control-label {
-  width: 300px;
-}
-
 #feedback {
   position: absolute;
   top: 12px;
   right: 12px;
-}
-
-h2 {
-  text-align: center;
-  margin-top: 0;
 }
 

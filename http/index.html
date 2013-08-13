@@ -14,13 +14,19 @@
 </head>
 <body>
     <a id="feedback" class="btn btn-danger" href="https://github.com/scraperwiki/wikipedia-infobox-tool/issues" target="_blank">Report a bug</a>
-    <h2>Wikipedia Infobox Tool</h2>
     <div class="form-horizontal">
+        <legend>Wikipedia Infobox Tool</legend>
         <div class="control-group">
             <label class="control-label" for="category">Category</label>
             <div class="controls">
                 <input type="text" id="category" class="input-xlarge" data-provide="typeahead" autocomplete="off">
-                <span class="help-inline">The category for data to be imported from</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <label class="checkbox">
+                    <input type="checkbox" id="includeSubcat">Include Subcategories
+                </label>
             </div>
         </div>
         <div class="control-group">
