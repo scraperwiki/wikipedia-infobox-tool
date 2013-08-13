@@ -8,32 +8,36 @@ import scraperwiki
 
 api_url = 'http://en.wikipedia.org/w/api.php?action=query&format=json' 
 
-def clean_brackets(item):
-    return re.sub('(\[\[)|(\]\])', '', item)
-
-def clean_html(item):
-    return re.sub('<[^<]+?>', '', item)
-
-def get_data_list(members):
-    data_list = []
-    for member in members:
-        if 'Category:' in member['title']:
-            scrape_members(member['title']) 
-        else:
-            #print "Scraping infobox for '%s'" % member['title']
-            data = scrape_infobox(member['pageid'])
-            if data != None and len(data) > 0:
-                data_list.append(data)
-                #print "Scraping done for '%s'" % member['title']
-    return data_list
+def clean_data(data):
+    data = re.sub('(\[\[)|(\]\])', '', data)
+    data = re.sub('<[^<]+?>', '', data) 
+    return data
 
 def scrape_members(category):
+    def get_data_list(members, category):
+        data_list = []
+        pages = []
+        subcategories = []
+        for member in members:
+            if 'Category:' in member['title']:
+                subcategories.append(member['title'])
+            else:
+                pages.append(member['pageid']) 
+        for page in pages:
+            data = scrape_infobox(page)
+            if data != None and len(data) > 0:
+                data_list.append(data)
+        print 'Scraped %s of %s pages in %s' % (len(data_list), len(pages), category)
+        for subcategory in subcategories:
+            scrape_members(subcategory.replace('Category:', '')) 
+        return data_list
+
     category = category.replace(' ', '_')
     query = '&list=categorymembers&cmtitle=Category:%s&cmsort=timestamp&cmdir=desc&cmlimit=max' % category
-    print query
     request = requests.get(api_url + query)
     json_content = request.json()
-    data_list = get_data_list(json_content['query']['categorymembers'])
+    members = json_content['query']['categorymembers'] 
+    data_list = get_data_list(members, category)
     if len(data_list) > 0:
         scraperwiki.sql.save(['id'], data_list)
 
@@ -50,41 +54,34 @@ def scrape_infobox(pageid):
     elif 'taxobox' in content.lower():
         content = content[content.lower().find('{{taxobox')::]
     else:
-        #print "Infobox not found for '%s'" % article_name
         return None
 
     infobox_end = re.search('\n[^\n{]*\}\}[^\n{]*\n', content)
 
     if infobox_end == None:
-        #print "Closing tag not found for '%s'" % article_name
         return None
 
     content = content[:infobox_end.start():]
-    content = re.split('\n[^|]\|', content)
+    content = re.split('\n[^|\n]*\|', content)
 
     data = {}
 
     for item in content[1::]:
         if '=' in item:
             pair = item.split('=', 1)
-            try:
-                field = pair[0].strip()
-                value = pair[1].strip()
-                value = clean_brackets(value)
-                value = clean_html(value)
-                data[field.lower()] = value
-                data['id'] = pageid
-                data['article_name'] = article_name
-            except IndexError:
-                print 'IndexError!'
-                exit(1)
+            field = pair[0].strip()
+            value = pair[1].strip()
+            value = clean_data(value)
+            data[field.lower()] = value
+            data['id'] = pageid
+            data['article_name'] = article_name
 
     return data
 
 def main():
-    print sys.argv[1]
+    scraperwiki.sql.execute("drop table if exists swdata;")
+    scraperwiki.sql.commit()  
     scrape_members(sys.argv[1])
-    print 'Success!'
 
 if __name__ == '__main__':
     main()

@@ -23,12 +23,18 @@ typeaheadSource = function(query, process) {
 }
 
 getDataSuccess = function(data) {
-  console.log('Done!') 
   console.log(data)
+  $('#submitBtn').attr('disabled', false)
+  $('#submitBtn').removeClass('loading').html('<i class="icon-ok"></i> Done')  
+  setTimeout(function() {
+    $('#submitBtn').html('Get Data')
+  }, 2000)
 }
 
 getData = function() {
   var category = scraperwiki.shellEscape($('#category').val())  
+  $(this).attr('disabled', true) 
+  $(this).addClass('loading').html('Scraping&hellip;')  
   scraperwiki.exec('/home/tool/get_data.py ' + category, getDataSuccess)
 }
 
