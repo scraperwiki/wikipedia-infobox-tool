@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import json
 import re
@@ -18,15 +20,17 @@ def get_data_list(members):
         if 'Category:' in member['title']:
             scrape_members(member['title']) 
         else:
-            print "Scraping infobox for '%s'" % member['title']
+            #print "Scraping infobox for '%s'" % member['title']
             data = scrape_infobox(member['pageid'])
             if data != None and len(data) > 0:
                 data_list.append(data)
-                print "Scraping done for '%s'" % member['title']
+                #print "Scraping done for '%s'" % member['title']
     return data_list
 
 def scrape_members(category):
-    query = '&list=categorymembers&cmtitle=%s&cmsort=timestamp&cmdir=desc&cmlimit=max' % category
+    category = category.replace(' ', '_')
+    query = '&list=categorymembers&cmtitle=Category:%s&cmsort=timestamp&cmdir=desc&cmlimit=max' % category
+    print query
     request = requests.get(api_url + query)
     json_content = request.json()
     data_list = get_data_list(json_content['query']['categorymembers'])
@@ -46,13 +50,13 @@ def scrape_infobox(pageid):
     elif 'taxobox' in content.lower():
         content = content[content.lower().find('{{taxobox')::]
     else:
-        print "Infobox not found for '%s'" % article_name
+        #print "Infobox not found for '%s'" % article_name
         return None
 
     infobox_end = re.search('\n[^\n{]*\}\}[^\n{]*\n', content)
 
     if infobox_end == None:
-        print "Closing tag not found for '%s'" % article_name
+        #print "Closing tag not found for '%s'" % article_name
         return None
 
     content = content[:infobox_end.start():]
@@ -78,7 +82,9 @@ def scrape_infobox(pageid):
     return data
 
 def main():
+    print sys.argv[1]
     scrape_members(sys.argv[1])
+    print 'Success!'
 
 if __name__ == '__main__':
     main()

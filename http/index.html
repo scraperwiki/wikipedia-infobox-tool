@@ -1,10 +1,33 @@
 <!DOCTYPE HTML>
-<html lang="en-US">
+<html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<title></title>
+    <meta charset="UTF-8">
+    <title>Wikipedia Infobox Tool</title>
+    <link rel="stylesheet" href="//scraperwiki.com/vendor/style/bootstrap.min.css">
+    <link rel="stylesheet" href="//scraperwiki.com/style/scraperwiki.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+    <script src="//scraperwiki.com/vendor/js/bootstrap.min.js"></script>
+    <script src="//scraperwiki.com/js/scraperwiki.js"></script>
+    <script src="js/code.js"></script> 
 </head>
 <body>
-	
+    <a id="feedback" class="btn btn-danger" href="https://github.com/scraperwiki/wikipedia-infobox-tool/issues" target="_blank">Report a bug</a>
+    <h2>Wikipedia Infobox Tool</h2>
+    <div class="form-horizontal">
+        <div class="control-group">
+            <label class="control-label" for="category">Category</label>
+            <div class="controls">
+                <input type="text" id="category" class="input-xlarge" data-provide="typeahead" autocomplete="off">
+                <span class="help-inline">The category for data to be imported from</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <button type="submit" class="btn btn-primary" id="submitBtn">Get Data</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
