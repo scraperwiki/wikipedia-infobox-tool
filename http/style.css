@@ -1,6 +1,7 @@
 body {
   width: 850px;
   margin: 0 auto;
+  padding: 5px;
 }
 
 .help-inline {
