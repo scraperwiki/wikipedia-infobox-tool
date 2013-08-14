@@ -4,7 +4,10 @@ import sys
 import re
 import requests
 import scraperwiki
+import sys
+import codecs
 
+sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 api_url = 'http://en.wikipedia.org/w/api.php?action=query&format=json' 
 
 def clear_db():
@@ -12,8 +15,12 @@ def clear_db():
     scraperwiki.sql.commit()
 
 def clean_data(data):
+    data = re.sub(' ', '', data)
+    data = re.sub('^\|', '', data)
+    # square brackets
     data = re.sub('(\[\[)|(\]\])', '', data)
-    data = re.sub('<[^<]+?>', '', data) 
+    # Anything in HTML tags
+    data = re.sub('<[^<]+?>', ' ', data) 
     return data
 
 def scrape_members(category, include_subcat='f'):
@@ -30,8 +37,10 @@ def scrape_members(category, include_subcat='f'):
                 pages.append(member['pageid']) 
         for page in pages:
             data = scrape_infobox(page)
+            
             if data != None and len(data) > 0:
                 data_list.append(data)
+
         print 'Scraped %s of %s pages in %s' % (len(data_list), len(pages), category)
         for subcategory in subcategories:
             scrape_members(subcategory.replace('Category:', '')) 
@@ -54,32 +63,34 @@ def scrape_infobox(pageid):
     content = json_content['query']['pages'][pageid]['revisions'][0]['*']
     article_name = json_content['query']['pages'][pageid]['title']    
 
-    if 'infobox' in content.lower():
-        content = content[content.lower().find('{{infobox')::]
-    elif 'taxobox' in content.lower():
-        content = content[content.lower().find('{{taxobox')::]
-    else:
+    content = re.sub('<!--[\\S\\s]*?-->', ' ', content)    
+
+    box_occurences = re.split('{{[a-z]+box[^\n}]*\n', content.lower()) 
+
+    if len(box_occurences) < 2:
         return None
-
-    infobox_end = re.search('\n[^\n{]*\}\}[^\n{]*\n', content)
-
-    if infobox_end == None:
-        return None
-
-    content = content[:infobox_end.start():]
-    content = re.split('\n[^|\n]*\|', content)
 
     data = {}
 
-    for item in content[1::]:
-        if '=' in item:
-            pair = item.split('=', 1)
-            field = pair[0].strip()
-            value = pair[1].strip()
-            value = clean_data(value)
-            data[field.lower()] = value
-            data['id'] = pageid
-            data['article_name'] = article_name
+    for box_occurence in box_occurences[1:]:
+
+        infobox_end = re.search('\n[^\n{]*\}\}[^\n{]*\n', box_occurence)
+
+        if infobox_end == None:
+            return None
+
+        box_occurence = box_occurence[:infobox_end.start():]
+        box_occurence = re.split('\n[^|\n]*\|', box_occurence)
+
+        for item in box_occurence:
+            item = clean_data(item)
+            if '=' in item:
+                pair = item.split('=', 1)
+                field = pair[0].strip()
+                value = pair[1].strip()
+                data[field.lower()] = value
+                data['id'] = pageid
+                data['article_name'] = article_name
 
     return data
 
