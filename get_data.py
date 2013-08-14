@@ -16,14 +16,16 @@ def clean_data(data):
     data = re.sub('<[^<]+?>', '', data) 
     return data
 
-def scrape_members(category):
+def scrape_members(category, include_subcat='f'):
+    clear_db()
     def get_data_list(members, category):
         data_list = []
         pages = []
         subcategories = []
         for member in members:
             if 'Category:' in member['title']:
-                subcategories.append(member['title'])
+                if include_subcat == 't':
+                    subcategories.append(member['title'])
             else:
                 pages.append(member['pageid']) 
         for page in pages:
@@ -82,7 +84,7 @@ def scrape_infobox(pageid):
     return data
 
 def main():  
-    scrape_members(sys.argv[1])
+    scrape_members(sys.argv[1][:-1], sys.argv[1][-1])
 
 if __name__ == '__main__':
     main()

@@ -18,6 +18,9 @@ typeaheadSource = function(query, process) {
         suggestions.push(value.replace(/^Category:/, ''))
       })
       process(suggestions)
+    },
+    error: function(error) {
+      console.log('Unable to connect to Wikipedia: ' + error)
     }
   }) 
 }
@@ -33,9 +36,15 @@ getDataSuccess = function(data) {
 
 getData = function() {
   var category = scraperwiki.shellEscape($('#category').val())  
+  var includeSubcat = $('#includeSubcat').is(':checked')
+  if (includeSubcat) {
+    includeSubcat = 't'
+  } else {
+    includeSubcat = 'f'
+  }
   $(this).attr('disabled', true) 
   $(this).addClass('loading').html('Scraping&hellip;')  
-  scraperwiki.exec('/home/tool/get_data.py ' + category, getDataSuccess)
+  scraperwiki.exec('/home/tool/get_data.py ' + category + includeSubcat.substring(0, 1), getDataSuccess)
 }
 
 $(function() {

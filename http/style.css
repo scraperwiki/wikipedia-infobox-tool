@@ -3,9 +3,28 @@ body {
   margin: 0 auto;
 }
 
+.help-inline {
+  opacity: 0.6;
+}
+
+legend, .form-horizontal .controls {
+  margin-left: 320px;
+}
+
+legend, .form-horizontal .control-label {
+  width: 300px;
+}
+
 #feedback {
   position: absolute;
   top: 12px;
   right: 12px;
 }
 
+legend {
+  margin-bottom: 0;
+}
+
+.form-horizontal {
+  margin-top: 0;
+}
