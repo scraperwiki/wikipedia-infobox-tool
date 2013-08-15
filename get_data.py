@@ -7,6 +7,7 @@ import scraperwiki
 import sys
 import codecs
 
+# for unicode characters to be printed
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 api_url = 'http://en.wikipedia.org/w/api.php?action=query&format=json' 
 
@@ -15,12 +16,21 @@ def clear_db():
     scraperwiki.sql.commit()
 
 def clean_data(data):
-    data = re.sub(' ', '', data)
     data = re.sub('^\|', '', data)
     # square brackets
-    data = re.sub('(\[\[)|(\]\])', '', data)
+    data = re.sub('[\[\]]', '', data)
     # Anything in HTML tags
+    # TODO: Recursive
     data = re.sub('<[^<]+?>', ' ', data) 
+    return data
+
+def parse_tags(data):
+    data = re.sub('\{\{((url)|(URL))\|(?P<text>[^\n]*)\}\}', '\g<text>', data)
+
+    if re.search('\[\[.*\|.*\]\]', data) != None:
+        data = re.sub('\[\[.*\|', '', data, 1)
+        data = re.sub('\]\]', '', data, 1)
+
     return data
 
 def scrape_members(category, include_subcat='f'):
@@ -63,6 +73,7 @@ def scrape_infobox(pageid):
     content = json_content['query']['pages'][pageid]['revisions'][0]['*']
     article_name = json_content['query']['pages'][pageid]['title']    
 
+    # remove HTML comment tags
     content = re.sub('<!--[\\S\\s]*?-->', ' ', content)    
 
     box_occurences = re.split('{{[a-z]+box[^\n}]*\n', content.lower()) 
@@ -83,6 +94,7 @@ def scrape_infobox(pageid):
         box_occurence = re.split('\n[^|\n]*\|', box_occurence)
 
         for item in box_occurence:
+            item = parse_tags(item)
             item = clean_data(item)
             if '=' in item:
                 pair = item.split('=', 1)
