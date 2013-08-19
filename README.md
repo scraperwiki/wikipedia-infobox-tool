@@ -7,4 +7,4 @@ TODO
 ----
 
 * Give feedback progress during scraping
-* Save the user's last scraped category
+* Handle timeouts and exceptions
