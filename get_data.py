@@ -16,20 +16,16 @@ def clear_db():
     scraperwiki.sql.commit()
 
 def clean_data(data):
-    data = re.sub('^\|', '', data)
     # square brackets
     data = re.sub('[\[\]]', '', data)
     # Anything in HTML tags
-    # TODO: Recursive
     data = re.sub('<[^<]+?>', ' ', data) 
     return data
 
 def parse_tags(data):
-    data = re.sub('\{\{((url)|(URL))\|(?P<text>[^\n]*)\}\}', '\g<text>', data)
-
-    if re.search('\[\[.*\|.*\]\]', data) != None:
-        data = re.sub('\[\[.*\|', '', data, 1)
-        data = re.sub('\]\]', '', data, 1)
+    data = re.sub('(?i)\{\{url\|([^\n]*)\}\}', '\g<1>', data)
+    data = re.sub('\[\[(.*)\|.*\]\]', '\g<1>', data)
+    data = re.sub('(?i)\{\{convert\|(.*)\|(.*)((\}\})|(\|.*\}\}))', '\g<1> \g<2>', data)
 
     return data
 
@@ -99,6 +95,7 @@ def scrape_infobox(pageid):
             if '=' in item:
                 pair = item.split('=', 1)
                 field = pair[0].strip()
+                field = re.sub('\|', '', field)
                 value = pair[1].strip()
                 data[field.lower()] = value
                 data['id'] = pageid
