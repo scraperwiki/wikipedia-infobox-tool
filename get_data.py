@@ -20,17 +20,18 @@ def clean_data(data):
     data = re.sub('[\[\]]', '', data)
     # Anything in HTML tags
     data = re.sub('<[^<]+?>', ' ', data) 
+    data = re.sub('(?i)\{\{cite .*\}\}', '', data)
     return data
 
 def parse_tags(data):
     data = re.sub('(?i)\{\{url\|([^\n]*)\}\}', '\g<1>', data)
     data = re.sub('\[\[(.*)\|.*\]\]', '\g<1>', data)
     data = re.sub('(?i)\{\{convert\|(.*)\|(.*)((\}\})|(\|.*\}\}))', '\g<1> \g<2>', data)
+    data = re.sub('(?i)\{\{nowrap\|(.*)\}\}', '\g<1>', data)
 
     return data
 
 def scrape_members(category, include_subcat='f'):
-    clear_db()
     def get_data_list(members, category):
         data_list = []
         pages = []
@@ -97,13 +98,15 @@ def scrape_infobox(pageid):
                 field = pair[0].strip()
                 field = re.sub('\|', '', field)
                 value = pair[1].strip()
-                data[field.lower()] = value
+                if value != '':
+                    data[field.lower()] = value
                 data['id'] = pageid
                 data['article_name'] = article_name
 
     return data
 
 def main():  
+    clear_db()
     scrape_members(sys.argv[1][:-1], sys.argv[1][-1])
 
 if __name__ == '__main__':
