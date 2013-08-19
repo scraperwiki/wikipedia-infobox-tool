@@ -29,9 +29,15 @@ getDataSuccess = function(data) {
   console.log(data)
   $('#submitBtn').attr('disabled', false)
   $('#submitBtn').removeClass('loading').html('<i class="icon-ok"></i> Done')  
+  var query = "select count(*) from swdata;"
+  scraperwiki.tool.sql(query, function(data, textStatus, jqXHR) {
+    var info_span = data[0]['count(*)'] + ' infoboxes scraped'
+    $('.help-inline').text(info_span)
+  })  
+
   setTimeout(function() {
     $('#submitBtn').html('Get Data')
-  }, 2000)
+  }, 4000)
 }
 
 getData = function() {
@@ -44,10 +50,20 @@ getData = function() {
   }
   $(this).attr('disabled', true) 
   $(this).addClass('loading').html('Scraping&hellip;')  
+  
+  scraperwiki.exec('/home/tool/update_db.py ' + category)
   scraperwiki.exec('/home/tool/get_data.py ' + category + includeSubcat.substring(0, 1), getDataSuccess)
 }
 
+populateForm = function() {
+  var query = "select * from swvariables;" 
+  scraperwiki.tool.sql(query, function(data, textStatus, jqXHR) {
+    $('#category').val(data[0]['value_blob']);
+  })
+}
+
 $(function() {
+  populateForm()
   $('#category').typeahead({
     source: typeaheadSource,
     items: 8,
