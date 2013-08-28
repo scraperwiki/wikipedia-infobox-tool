@@ -4,7 +4,6 @@ import sys
 import re
 import requests
 import scraperwiki
-import sys
 import codecs
 
 # for unicode characters to be printed
