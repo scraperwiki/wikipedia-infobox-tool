@@ -6,31 +6,35 @@ import requests
 import scraperwiki
 import codecs
 
-# for unicode characters to be printed
+# Allow unicode characters to be printed.
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 api_url = 'http://en.wikipedia.org/w/api.php?action=query&format=json' 
+
 
 def clear_db():
     scraperwiki.sql.execute("drop table if exists swdata;")
     scraperwiki.sql.commit()
 
+
 def clean_data(data):
-    # square brackets
+    # Strip square brackets.
     data = re.sub('[\[\]]', '', data)
-    # Anything in HTML tags
+    # Strip all HTML tags.
     data = re.sub('<[^<]+?>', ' ', data) 
     data = re.sub('(?i)\{\{cite .*\}\}', '', data)
     return data
+
 
 def parse_tags(data):
     data = re.sub('(?i)\{\{url\|([^\n]*)\}\}', '\g<1>', data)
     data = re.sub('\[\[(.*)\|.*\]\]', '\g<1>', data)
     data = re.sub('(?i)\{\{convert\|(.*)\|(.*)((\}\})|(\|.*\}\}))', '\g<1> \g<2>', data)
     data = re.sub('(?i)\{\{nowrap\|(.*)\}\}', '\g<1>', data)
-
     return data
 
+
 def scrape_members(category, include_subcat='f'):
+
     def get_data_list(members, category):
         data_list = []
         pages = []
@@ -47,19 +51,20 @@ def scrape_members(category, include_subcat='f'):
             if data != None and len(data) > 0:
                 data_list.append(data)
 
-        print 'Scraped %s of %s pages in %s' % (len(data_list), len(pages), category)
         for subcategory in subcategories:
             scrape_members(subcategory.replace('Category:', '')) 
         return data_list
 
     category = category.replace(' ', '_')
-    query = '&list=categorymembers&cmtitle=Category:%s&cmsort=timestamp&cmdir=desc&cmlimit=max' % category
+    query = '&list=categorymembers&cmtitle=Category:%s&cmsort=timestamp&' \
+    'cmdir=desc&cmlimit=max' % category
     request = requests.get(api_url + query)
     json_content = request.json()
     members = json_content['query']['categorymembers'] 
     data_list = get_data_list(members, category)
     if len(data_list) > 0:
         scraperwiki.sql.save(['id'], data_list)
+
 
 def scrape_infobox(pageid):
     query = '&action=query&pageids=%s&prop=revisions&rvprop=content' % pageid
@@ -69,7 +74,7 @@ def scrape_infobox(pageid):
     content = json_content['query']['pages'][pageid]['revisions'][0]['*']
     article_name = json_content['query']['pages'][pageid]['title']    
 
-    # remove HTML comment tags
+    # Remove HTML comment tags.
     content = re.sub('<!--[\\S\\s]*?-->', ' ', content)    
 
     box_occurences = re.split('{{[a-z]+box[^\n}]*\n', content.lower()) 
@@ -104,9 +109,11 @@ def scrape_infobox(pageid):
 
     return data
 
+
 def main():  
     clear_db()
     scrape_members(sys.argv[1][:-1], sys.argv[1][-1])
+
 
 if __name__ == '__main__':
     main()
