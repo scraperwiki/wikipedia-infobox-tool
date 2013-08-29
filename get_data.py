@@ -8,7 +8,7 @@ import codecs
 
 # Allow unicode characters to be printed.
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
-api_url = 'http://en.wikipedia.org/w/api.php?action=query&format=json' 
+api_url = 'http://en.wikipedia.org/w/api.php?action=query&format=json'
 
 
 def clear_db():
@@ -20,7 +20,7 @@ def clean_data(data):
     # Strip square brackets.
     data = re.sub('[\[\]]', '', data)
     # Strip all HTML tags.
-    data = re.sub('<[^<]+?>', ' ', data) 
+    data = re.sub('<[^<]+?>', ' ', data)
     data = re.sub('(?i)\{\{cite .*\}\}', '', data)
     return data
 
@@ -44,23 +44,23 @@ def scrape_members(category, include_subcat='f'):
                 if include_subcat == 't':
                     subcategories.append(member['title'])
             else:
-                pages.append(member['pageid']) 
+                pages.append(member['pageid'])
         for page in pages:
             data = scrape_infobox(page)
-            
-            if data != None and len(data) > 0:
+
+            if data is not None and len(data) > 0:
                 data_list.append(data)
 
         for subcategory in subcategories:
-            scrape_members(subcategory.replace('Category:', '')) 
+            scrape_members(subcategory.replace('Category:', ''))
         return data_list
 
     category = category.replace(' ', '_')
     query = '&list=categorymembers&cmtitle=Category:%s&cmsort=timestamp&' \
-    'cmdir=desc&cmlimit=max' % category
+        'cmdir=desc&cmlimit=max' % category
     request = requests.get(api_url + query)
     json_content = request.json()
-    members = json_content['query']['categorymembers'] 
+    members = json_content['query']['categorymembers']
     data_list = get_data_list(members, category)
     if len(data_list) > 0:
         scraperwiki.sql.save(['id'], data_list)
@@ -72,12 +72,12 @@ def scrape_infobox(pageid):
     json_content = request.json()
     pageid = json_content['query']['pages'].keys()[0]
     content = json_content['query']['pages'][pageid]['revisions'][0]['*']
-    article_name = json_content['query']['pages'][pageid]['title']    
+    article_name = json_content['query']['pages'][pageid]['title']
 
     # Remove HTML comment tags.
-    content = re.sub('<!--[\\S\\s]*?-->', ' ', content)    
+    content = re.sub('<!--[\\S\\s]*?-->', ' ', content)
 
-    box_occurences = re.split('{{[a-z]+box[^\n}]*\n', content.lower()) 
+    box_occurences = re.split('{{[a-z]+box[^\n}]*\n', content.lower())
 
     if len(box_occurences) < 2:
         return None
@@ -88,7 +88,7 @@ def scrape_infobox(pageid):
 
         infobox_end = re.search('\n[^\n{]*\}\}[^\n{]*\n', box_occurence)
 
-        if infobox_end == None:
+        if infobox_end is None:
             return None
 
         box_occurence = box_occurence[:infobox_end.start():]
@@ -110,11 +110,10 @@ def scrape_infobox(pageid):
     return data
 
 
-def main():  
+def main():
     clear_db()
     scrape_members(sys.argv[1][:-1], sys.argv[1][-1])
 
 
 if __name__ == '__main__':
     main()
-
