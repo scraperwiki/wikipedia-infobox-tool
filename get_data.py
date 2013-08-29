@@ -21,12 +21,14 @@ def clean_data(data):
     # Anything in HTML tags
     data = re.sub('<[^<]+?>', ' ', data) 
     data = re.sub('(?i)\{\{cite .*\}\}', '', data)
+    data = re.sub('&nbsp;', '', data)
     return data
 
 def parse_tags(data):
     data = re.sub('(?i)\{\{url\|([^\n]*)\}\}', '\g<1>', data)
     data = re.sub('\[\[(.*)\|.*\]\]', '\g<1>', data)
-    data = re.sub('(?i)\{\{convert\|(.*)\|(.*)((\}\})|(\|.*\}\}))', '\g<1> \g<2>', data)
+    data = re.sub('(?i)\{\{convert\|(.*?)\|(.*?)((\}\})|(\|.*\}\}))', '\g<1> \g<2>', data)
+    data = re.sub('(?i)\{\{convinfobox\|(.*?)\|(.*?)((\}\})|(\|.*\}\}))', '\g<1> \g<2>', data)
     data = re.sub('(?i)\{\{nowrap\|(.*)\}\}', '\g<1>', data)
 
     return data
